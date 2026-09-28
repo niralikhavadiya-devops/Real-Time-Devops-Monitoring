@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: devops-monitoring
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: devops-monitoring
+
+  template:
+    metadata:
+      labels:
+        app: devops-monitoring
+
+    spec:
+      containers:
+        - name: devops-monitoring
+          image: devops-monitoring-app:latest
+          imagePullPolicy: Never
+
+          ports:
+            - containerPort: 5000
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
