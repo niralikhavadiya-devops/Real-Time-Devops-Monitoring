@@ -1,7 +1,18 @@
-from flask import Flask
+from flask import Flask, Response
 import psutil
+from prometheus_client import Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 app = Flask(__name__)
+
+cpu_usage = Gauge(
+    "app_cpu_usage_percent",
+    "Current CPU usage percentage"
+)
+
+memory_usage = Gauge(
+    "app_memory_usage_percent",
+    "Current memory usage percentage"
+)
 
 
 @app.route("/")
@@ -16,13 +27,13 @@ def health():
 
 @app.route("/metrics")
 def metrics():
-    cpu_usage = psutil.cpu_percent(interval=1)
-    memory_usage = psutil.virtual_memory().percent
+    cpu_usage.set(psutil.cpu_percent(interval=1))
+    memory_usage.set(psutil.virtual_memory().percent)
 
-    return {
-        "cpu_usage_percent": cpu_usage,
-        "memory_usage_percent": memory_usage
-    }
+    return Response(
+        generate_latest(),
+        mimetype=CONTENT_TYPE_LATEST
+    )
 
 
 if __name__ == "__main__":
